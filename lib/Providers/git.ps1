@@ -75,7 +75,7 @@ $Update_GitModule = {
 			throw "Not updating as the working tree contains changes"
 		}
 
-		(& $Invoke_GitCommand "merge", "--ff-only") | Write-Verbose
+		(& $Invoke_GitCommand "merge", "FETCH_HEAD", "--ff-only") | Write-Verbose
 	}
 
 	return $NeedsUpdate
