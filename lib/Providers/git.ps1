@@ -16,6 +16,7 @@ $Test_GitExists = {
 }.GetNewClosure()
 
 $Invoke_GitCommand = {
+	[CmdletBinding()]
 	Param([String[]]$Arguments)
 
 	& $Test_GitExists | Out-Null
@@ -30,6 +31,7 @@ $Invoke_GitCommand = {
 }.GetNewClosure()
 
 $Test_GitApplicability = {
+	[CmdletBinding()]
 	Param($Source)
 
 	if ($Source -match "^git://") {
@@ -48,19 +50,32 @@ $Test_GitApplicability = {
 }
 
 $Get_GitModule = {
+	[CmdletBinding()]
 	Param($ModuleInfo)
 	& $Invoke_GitCommand "clone", $ModuleInfo.Source, $ModuleInfo.Name
 }.GetNewClosure()
 
 $Update_GitModule = {
+	[CmdletBinding()]
 	Param($ModuleInfo)
 
-	& $Invoke_GitCommand "fetch"
+	(& $Invoke_GitCommand "fetch") | Write-Verbose
 
-	$NeedsUpdate = (& $Invoke_GitCommand "log", "HEAD..FETCH_HEAD").length -gt 0
+	$LogOutput = (& $Invoke_GitCommand "log", "HEAD..FETCH_HEAD")
+	$LogOutput | Write-Verbose
+	$NeedsUpdate = ($LogOutput.length -gt 0)
 
 	if ($NeedsUpdate) {
-		& $Invoke_GitCommand "fetch"
+		Write-Host "Update for $($ModuleInfo.Name) found"
+
+		& $Invoke_GitCommand "update-index", "-q", "--refresh" | Out-Null
+		$Changed = (& $Invoke_GitCommand "diff-index", "--name-only", "HEAD", "--").Length -gt 0
+
+		if ($Changed) {
+			throw "Not updating as the working tree contains changes"
+		}
+
+		(& $Invoke_GitCommand "merge", "--ff-only") | Write-Verbose
 	}
 
 	return $NeedsUpdate
@@ -70,15 +85,18 @@ if (-not ($PsBundle.Providers | ? { $_.ProviderType -eq 'git' })) {
 	Register-PsBundleProvider `
 		-ProviderType 'git' `
 		-TestApplicability {
+			[CmdletBinding()]
 			Param($Source, $Base)
 			& $Test_GitApplicability -Source $Source
 		}.GetNewClosure() `
 		-GetModule {
+			[CmdletBinding()]
 			Param($ModuleInfo, $Base)
 			& $Get_GitModule -ModuleInfo $ModuleInfo
 		}.GetNewClosure() `
 		-UpdateModule {
+			[CmdletBinding()]
 			Param($ModuleInfo, $Base)
-			& $Update_GitModule -ModuleInfo $ModuleInfo
+			return (& $Update_GitModule -ModuleInfo $ModuleInfo)
 		}.GetNewClosure()
 }

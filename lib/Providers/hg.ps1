@@ -16,13 +16,14 @@ $Test_HgExists = {
 }.GetNewClosure()
 
 $Invoke_HgCommand = {
+	[CmdletBinding()]
 	Param([String]$Command, [String[]]$Arguments)
 
 	& $Test_HgExists | Out-Null
 
 	Write-Verbose "hg $(((@($Command) + $Arguments) | % { "[$_]" }) -join " ")"
 
-	$result = & hg (@($Command) + $Arguments)
+	$result = (& hg (@($Command) + $Arguments))
 	if ($LastExitCode -ne 0) {
 		throw "Error running hg"
 	}
@@ -30,6 +31,7 @@ $Invoke_HgCommand = {
 }.GetNewClosure()
 
 $Test_HgApplicability = {
+	[CmdletBinding()]
 	Param($Source)
 
 	if ($Source -match "^https://") {
@@ -40,20 +42,25 @@ $Test_HgApplicability = {
 }.GetNewClosure()
 
 $Get_HgModule = {
+	[CmdletBinding()]
 	Param($ModuleInfo)
 
 	& $Invoke_HgCommand "clone" $ModuleInfo.Source, $ModuleInfo.Name
 }.GetNewClosure()
 
 $Update_HgModule = {
+	[CmdletBinding()]
 	Param($ModuleInfo)
 
-	& $Invoke_HgCommand "pull"
+	(& $Invoke_HgCommand "pull") | Write-Verbose
 
-	$NeedsUpdate = (& $Invoke_HgCommand "log" "-r", "head() & .").length -gt 0
+	$LogOutput = (& $Invoke_HgCommand "log" "-r", "head() & .")
+	$LogOutput | Write-Verbose
+	$NeedsUpdate = ($LogOutput.length -eq 0)
 
 	if ($NeedsUpdate) {
-		& $Invoke_HgCommand "update"
+		Write-Host "Update for $($ModuleInfo.Name) found"
+		(& $Invoke_HgCommand "update") | Write-Verbose
 	}
 
 	return $NeedsUpdate
@@ -63,15 +70,18 @@ if (-not ($PsBundle.Providers | ? { $_.ProviderType -eq 'hg' })) {
 	Register-PsBundleProvider `
 		-ProviderType 'hg' `
 		-TestApplicability {
+			[CmdletBinding()]
 			Param($Source, $Base)
 			& $Test_HgApplicability -Source $Source
 		}.GetNewClosure() `
 		-GetModule {
+			[CmdletBinding()]
 			Param($ModuleInfo, $Base)
 			& $Get_HgModule -ModuleInfo $ModuleInfo
 		}.GetNewClosure() `
 		-UpdateModule {
+			[CmdletBinding()]
 			Param($ModuleInfo, $Base)
-			& $Update_HgModule -ModuleInfo $ModuleInfo
+			return (& $Update_HgModule -ModuleInfo $ModuleInfo)
 		}.GetNewClosure()
 }

@@ -20,6 +20,7 @@ $BasePath = Split-Path $MyInvocation.MyCommand.Definition
 	'lib\Install-PsBundleModule.ps1'
 	'lib\Register-Module.ps1'
 	'lib\Register-PsBundleProvider.ps1'
+	'lib\Update-Bundle.ps1'
 	'lib\Update-PsBundleModule.ps1'
 ) | % { . (Join-Path $BasePath $_) }
 

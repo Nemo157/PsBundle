@@ -6,7 +6,7 @@ Function Install-PsBundleModule ($ModuleInfo) {
 
 	Push-Location (Join-Path $Home "Documents\WindowsPowershell\Modules")
 	try {
-		& $Provider.GetModule -ModuleInfo $ModuleInfo -Base $BaseProvider
+		& $Provider.GetModule $ModuleInfo $BaseProvider
 	} finally {
 		Pop-Location
 	}

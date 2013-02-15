@@ -14,11 +14,5 @@ if (-not ($PsBundle.Providers | ? { $_.ProviderType -eq 'github' })) {
 			$ModuleInfo = $ModuleInfo.Clone()
 			$ModuleInfo.Source = 'https://github.com/' + $ModuleInfo.Source
 			& $Base.GetModule -ModuleInfo $ModuleInfo
-		} `
-		-UpdateModule {
-			Param($ModuleInfo, $Base)
-			$ModuleInfo = $ModuleInfo.Clone()
-			$ModuleInfo.Source = 'https://github.com/' + $ModuleInfo.Source
-			return & $Base.UpdateModule -ModuleInfo $ModuleInfo
 		}
 }

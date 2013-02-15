@@ -18,14 +18,15 @@ Function Register-PsBundleProvider {
 	)
 
 	@('TestApplicability', 'GetModule', 'UpdateModule') | % {
-		if (-not (Get-Variable -Name $_ -ValueOnly)) {
+		$MethodName = $_
+		if (-not (Get-Variable -Name $MethodName -ValueOnly)) {
 			if ($BaseType) {
-				Set-Variable -Name $_ -Value {
+				Set-Variable -Name $MethodName -Value {
 					Param ($Argument, $Base)
-					& $Base[$_] $Argument
+					& $Base[$MethodName] $Argument
 				}.GetNewClosure()
 			} else {
-				throw "Cannot register a primary provider without a $_ function"
+				throw "Cannot register a primary provider without a $MethodName function"
 			}
 		}
 	}

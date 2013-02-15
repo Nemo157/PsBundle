@@ -1,4 +1,6 @@
-Function Install-Bundle ([switch] $Update) {
+Function Install-Bundle {
+	[CmdletBinding()]
+	Param([switch] $Update)
 	$global:PsBundle.Modules.Requested | ? {
 		$Update -or ($global:PsBundle.Modules.Installed -notcontains $_)
 	} | % {
@@ -15,7 +17,7 @@ Function Install-Bundle ([switch] $Update) {
 				Install-PsBundleModule $ModuleInfo
 			}
 		} catch {
-			"Could not install $($ModuleInfo.Name): $_"
+			"Processing $($ModuleInfo.Name) failed: $_"
 		}
 	}
 }
