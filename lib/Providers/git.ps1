@@ -10,9 +10,8 @@ $Test_GitExists = {
 		}
 	}
 	if (-not $GitExists) {
-		Write-Error "git not found"
+		throw "git not found"
 	}
-	return $GitExists
 }.GetNewClosure()
 
 $Invoke_GitCommand = {
@@ -61,7 +60,7 @@ $Update_GitModule = {
 
 	(& $Invoke_GitCommand "fetch") | Write-Verbose
 
-	$LogOutput = (& $Invoke_GitCommand "log", "HEAD..FETCH_HEAD")
+	$LogOutput = (& $Invoke_GitCommand "log", "HEAD..origin/master")
 	$LogOutput | Write-Verbose
 	$NeedsUpdate = ($LogOutput.length -gt 0)
 
@@ -75,7 +74,7 @@ $Update_GitModule = {
 			throw "Not updating as the working tree contains changes"
 		}
 
-		(& $Invoke_GitCommand "merge", "FETCH_HEAD", "--ff-only") | Write-Verbose
+		(& $Invoke_GitCommand "merge", "origin/master", "--ff-only") | Write-Verbose
 	}
 
 	return $NeedsUpdate

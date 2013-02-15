@@ -1,7 +1,7 @@
 Function Install-PsBundleModule ($ModuleInfo) {
 	$Provider = $global:PsBundle.Providers[$ModuleInfo.ProviderType]
 	if ($Provider.BaseType) {
-		$BaseProvider = $global:PsBundle.Providers[$ModuleInfo.BaseType]
+		$BaseProvider = $global:PsBundle.Providers[$Provider.BaseType]
 	}
 
 	Push-Location (Join-Path $Home "Documents\WindowsPowershell\Modules")
