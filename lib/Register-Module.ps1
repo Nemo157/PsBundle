@@ -8,10 +8,13 @@ Function Register-Module {
 		[String] $ProviderType,
 
 		[Parameter(ValueFromPipelineByPropertyName=$true, Mandatory=$true, Position=0)]
-		[String] $Source
+		[String] $Source,
+
+		[Parameter(ValueFromPipelineByPropertyName=$true)]
+		[String] $Version
 	)
 
-	Write-Verbose "Register-Module -Name [$Name] -ProviderType [$ProviderType] -Source [$Source]"
+	Write-Verbose "Register-Module -Name [$Name] -ProviderType [$ProviderType] -Source [$Source] -Version [$Version]"
 
 	if ($ProviderType) {
 		Write-Verbose "Provider Type [$ProviderType] supplied"
@@ -39,6 +42,7 @@ Function Register-Module {
 		'Name' = $Name
 		'ProviderType' = $ProviderType
 		'Source' = $Source
+		'Version' = $Version
 	}
 
 	$global:PsBundle.Modules.Requested += $ModuleInfo

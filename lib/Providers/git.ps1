@@ -54,14 +54,25 @@ $Test_GitApplicability = {
 $Get_GitModule = {
 	[CmdletBinding()]
 	Param($ModuleInfo)
-	& $Invoke_GitCommand "clone" $ModuleInfo.Source $ModuleInfo.Name
+
+	$Version = $ModuleInfo.Version
+	if (-not $Version) {
+		$Version = 'master'
+	}
+
+	(& $Invoke_GitCommand "clone" $ModuleInfo.Source $ModuleInfo.Name "-b" $Version "2>&1") | Write-Verbose
 }.GetNewClosure()
 
 $Update_GitModule = {
 	[CmdletBinding()]
 	Param($ModuleInfo)
 
-	(& $Invoke_GitCommand "fetch" $ModuleInfo.Source "master:" "2>&1") | Write-Verbose
+	$Version = $ModuleInfo.Version
+	if (-not $Version) {
+		$Version = 'master'
+	}
+
+	(& $Invoke_GitCommand "fetch" $ModuleInfo.Source "${Version}:" "2>&1") | Write-Verbose
 
 	$LogOutput = (& $Invoke_GitCommand "log" "HEAD..FETCH_HEAD")
 	$LogOutput | Write-Verbose
