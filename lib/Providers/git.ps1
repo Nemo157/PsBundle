@@ -16,7 +16,10 @@ $Test_GitExists = {
 
 $Invoke_GitCommand = {
 	[CmdletBinding()]
-	Param([String[]]$Arguments)
+	Param(
+		[Parameter(ValueFromRemainingArguments = $true)]
+		[String[]] $Arguments
+	)
 
 	& $Test_GitExists | Out-Null
 
@@ -51,30 +54,30 @@ $Test_GitApplicability = {
 $Get_GitModule = {
 	[CmdletBinding()]
 	Param($ModuleInfo)
-	& $Invoke_GitCommand "clone", $ModuleInfo.Source, $ModuleInfo.Name
+	& $Invoke_GitCommand "clone" $ModuleInfo.Source $ModuleInfo.Name
 }.GetNewClosure()
 
 $Update_GitModule = {
 	[CmdletBinding()]
 	Param($ModuleInfo)
 
-	(& $Invoke_GitCommand "fetch") | Write-Verbose
+	(& $Invoke_GitCommand "fetch" $ModuleInfo.Source "master:" "2>&1") | Write-Verbose
 
-	$LogOutput = (& $Invoke_GitCommand "log", "HEAD..origin/master")
+	$LogOutput = (& $Invoke_GitCommand "log" "HEAD..FETCH_HEAD")
 	$LogOutput | Write-Verbose
 	$NeedsUpdate = ($LogOutput.length -gt 0)
 
 	if ($NeedsUpdate) {
 		Write-Host "Update for $($ModuleInfo.Name) found"
 
-		& $Invoke_GitCommand "update-index", "-q", "--refresh" | Out-Null
-		$Changed = (& $Invoke_GitCommand "diff-index", "--name-only", "HEAD", "--").Length -gt 0
+		& $Invoke_GitCommand "update-index" "-q" "--refresh" | Out-Null
+		$Changed = (& $Invoke_GitCommand "diff-index" "--name-only" "HEAD" "--").Length -gt 0
 
 		if ($Changed) {
 			throw "Not updating as the working tree contains changes"
 		}
 
-		(& $Invoke_GitCommand "merge", "origin/master", "--ff-only") | Write-Verbose
+		(& $Invoke_GitCommand "merge" "FETCH_HEAD" "--ff-only") | Write-Verbose
 	}
 
 	return $NeedsUpdate
