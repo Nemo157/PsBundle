@@ -1,7 +1,7 @@
 PsBundle
 ========
 
-Powershell interactive session module management.
+PowerShell interactive session module management.
 
 URL: https://github.com/Nemo157/psbundle
 
